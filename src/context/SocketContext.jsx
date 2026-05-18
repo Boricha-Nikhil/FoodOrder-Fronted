@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { io } from 'socket.io-client';
+import { getSocketOrigin } from '../config/apiEnv';
 
 const SocketContext = createContext();
 
@@ -9,7 +10,8 @@ export function SocketProvider({ children }) {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    socketRef.current = io(window.location.origin, {
+    const url = getSocketOrigin() ?? window.location.origin;
+    socketRef.current = io(url, {
       transports: ['websocket', 'polling'],
     });
 
