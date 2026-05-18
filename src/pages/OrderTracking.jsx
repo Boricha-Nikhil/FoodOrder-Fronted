@@ -39,16 +39,25 @@ export default function OrderTracking() {
     }
   }, [orderId, joinOrder]);
 
+  const pulseClearRef = useRef(null);
+
   useEffect(() => {
-    if (orderStatus && orderStatus.orderId === orderId) {
+    if (!orderStatus || orderStatus.orderId !== orderId) return;
+
+    const applyUpdate = () => {
       const newStep = STATUSES.indexOf(orderStatus.status);
       setAnimatingStep(newStep);
       setOrder((prev) => (prev ? { ...prev, status: orderStatus.status } : prev));
       setLastUpdated(orderStatus.updatedAt || new Date().toISOString());
+      pulseClearRef.current = setTimeout(() => setAnimatingStep(-1), 2000);
+    };
 
-      const timer = setTimeout(() => setAnimatingStep(-1), 2000);
-      return () => clearTimeout(timer);
-    }
+    const syncTimer = setTimeout(applyUpdate, 0);
+
+    return () => {
+      clearTimeout(syncTimer);
+      if (pulseClearRef.current) clearTimeout(pulseClearRef.current);
+    };
   }, [orderStatus, orderId]);
 
   if (loading) return <Loader />;
